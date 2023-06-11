@@ -21,3 +21,4 @@ jobs:
         with:
           tag: v1.0.0
           artifacts: "build/app/outputs/apk/debug/*.apk"
+          token: ${{ secrets.TOKEN }}
