@@ -22,8 +22,8 @@ if (flutterVersionName == null) {
 }
 
 def flutterCompileSdkVersion = localProperties.getProperty('flutter.compileSdkVersion')
-if (compileSdkVersion == null) {
-    compileSdkVersion = '33'
+if (flutterCompileSdkVersion == null) {
+    flutterCompileSdkVersion = '33'
 }
 
 apply plugin: 'com.android.application'
