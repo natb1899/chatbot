@@ -3,7 +3,7 @@ on:
     tags:
       - "*"
 
-name: Test, Build and Release apk
+name: Build and Release apk
 jobs:
   build:
     name: Build APK
@@ -18,7 +18,7 @@ jobs:
       - run: flutter pub get
       #- run: flutter test
       - run: flutter build apk
-      - name: Create a Release APK
+      - name: Release APK
       - uses: ncipollo/release-action@v1
         with:
           artifacts: "build/app/outputs/apk/debug/*.apk"
