@@ -137,7 +137,8 @@ class _SpeechScreenState extends State<SpeechScreen> {
           );
         });
 
-        String? answer = (await ApiChatGPT().getGPTData(messages))?.trim();
+        //String? answer = (await ApiChatGPT().getGPTData(messages))?.trim();
+        String answer = ApiChatGPT().sendMessageGPT();
 
         setState(
           () {
