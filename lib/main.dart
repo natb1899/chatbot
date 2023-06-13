@@ -3,10 +3,15 @@ import 'package:chatbot/screens/speech_screen.dart';
 import 'package:chatbot/theme/app_bar_theme.dart';
 import 'package:chatbot/theme/light_theme.dart';
 import 'package:chatbot/utils/helper_widgets.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-void main() => runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  runApp(const MyApp());
+}
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
