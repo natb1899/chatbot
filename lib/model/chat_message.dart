@@ -1,7 +1,7 @@
 enum ChatType { user, assistent, system }
 
 class ChatMessage {
-  final String? transcript;
+  String? transcript;
   final ChatType type;
 
   Map<String, String> toJson() {

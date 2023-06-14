@@ -128,15 +128,18 @@ class _SpeechScreenState extends State<SpeechScreen> {
           return;
         }
 
-        setState(() {
-          messages.add(
-            ChatMessage(
-              transcript: transcript,
-              type: ChatType.user,
-            ),
-          );
-        });
+        setState(
+          () {
+            messages.add(
+              ChatMessage(
+                transcript: transcript,
+                type: ChatType.user,
+              ),
+            );
+          },
+        );
 
+        /// Normale API nicht mit Streaming API
         String? answer = (await ApiChatGPT().getGPTData(messages))?.trim();
 
         setState(
@@ -151,6 +154,33 @@ class _SpeechScreenState extends State<SpeechScreen> {
             //_transcript = transcript;
           },
         );
+
+        /**
+         * Diese Methode ist für die Streaming API gedacht; Vielleicht für später um User Experience zu verbessern oder 
+         * vielleicht ist diese Streaming API schneller als die normale API;
+         * 
+         *  // Fetch the streaming data*
+            setState(
+              () {
+                messages.add(
+                  ChatMessage(
+                    transcript: "",
+                    type: ChatType.assistent,
+                  ),
+                );
+              },
+            );
+
+            final eventStream = ApiChatGPT().getEventStream();
+            await for (final eventData in eventStream) {
+              setState(
+                () {
+                  messages.last.transcript =
+                      '${messages.last.transcript ?? ''}$eventData';
+                },
+              );
+            }
+        */
       } catch (e) {
         // Code to handle error
       } finally {

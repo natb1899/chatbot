@@ -1,5 +1,5 @@
+import 'package:chatbot/screens/profile_screen.dart';
 import 'package:chatbot/theme/app_bar_theme.dart';
-import 'package:chatbot/utils/helper_widgets.dart';
 import 'package:flutter/material.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -18,7 +18,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
       appBar: const MyAppBar(title: 'Settings'),
       body: ListView(
         children: [
-          const VerticalSpace(50),
+          ListTile(
+            title: const Text('Profile'),
+            subtitle: const Text(
+              'View and edit your profile',
+              style: TextStyle(color: Colors.grey),
+            ),
+            trailing: const Icon(Icons.arrow_forward_ios),
+            onTap: () {
+              // Navigate to the profile screen
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ProfileScreen()),
+              );
+            },
+          ),
           ListTile(
             title: const Text('Dark mode'),
             subtitle: const Text(
@@ -58,11 +72,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ],
             ),
-          ),
-          ListTile(
-            title: const Text('Logout'),
-            subtitle: const Text('Log out of your account'),
-            onTap: () {},
           ),
         ],
       ),
