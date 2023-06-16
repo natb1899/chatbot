@@ -9,9 +9,6 @@ Future<File> fetchAndPlayWavFile(String? answerVariable, bool isMan) async {
 
   String formattedAnswer = answer.replaceAll('\n', '');
 
-  print("TEST");
-  print(isMan);
-
   final url = Uri.parse('http://192.168.137.1:5001/synthesize');
 
   final response = await http.post(

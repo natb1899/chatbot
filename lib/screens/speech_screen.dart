@@ -1,18 +1,14 @@
 import 'dart:async';
-import 'dart:io';
 import 'package:chatbot/services/chat_gpt_api.dart';
 import 'package:chatbot/services/speech_to_text_api.dart';
-import 'package:chatbot/services/text_to_speech_api.dart';
 import 'package:chatbot/utils/format_number_utils.dart';
 import 'package:chatbot/model/chat_message.dart';
-import 'package:chatbot/utils/gender_provider.dart';
 import 'package:chatbot/widgets/record_control_widget.dart';
 import 'package:chatbot/widgets/sliding_up_panel_widget.dart';
 import 'package:chatbot/widgets/typing_animation.dart';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:just_audio/just_audio.dart';
 import 'package:record/record.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 
@@ -44,7 +40,7 @@ class _SpeechScreenState extends State<SpeechScreen> {
   @override
   void initState() {
     _audioRecorder = Record();
-    _audioPlayer = AudioPlayer();
+    //_audioPlayer = AudioPlayer();
     if (kDebugMode) {
       print("object");
       print(_transcript);
