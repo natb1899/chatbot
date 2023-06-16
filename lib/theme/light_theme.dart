@@ -14,7 +14,7 @@ ThemeData lightTheme = ThemeData(
   listTileTheme: ListTileThemeData(
     tileColor: Colors.white,
     titleTextStyle: const TextStyle(
-        fontSize: 14, color: Colors.black, fontWeight: FontWeight.bold),
+        fontSize: 12, color: Colors.black, fontWeight: FontWeight.bold),
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(10.0),
     ),

@@ -1,21 +1,28 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:chatbot/services/chat_gpt_api.dart';
 import 'package:chatbot/services/speech_to_text_api.dart';
+import 'package:chatbot/services/text_to_speech_api.dart';
 import 'package:chatbot/utils/format_number_utils.dart';
 import 'package:chatbot/model/chat_message.dart';
+import 'package:chatbot/utils/gender_provider.dart';
 import 'package:chatbot/widgets/record_control_widget.dart';
 import 'package:chatbot/widgets/sliding_up_panel_widget.dart';
 import 'package:chatbot/widgets/typing_animation.dart';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:just_audio/just_audio.dart';
+import 'package:provider/provider.dart';
 import 'package:record/record.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 
 class SpeechScreen extends StatefulWidget {
-  final void Function(String path) onStop;
+  //final List<ChatMessage> messages;
 
-  const SpeechScreen({Key? key, required this.onStop}) : super(key: key);
+  //const SpeechScreen({Key? key, required this.messages}) : super(key: key);
+
+  const SpeechScreen({Key? key}) : super(key: key);
 
   @override
   State<SpeechScreen> createState() => _SpeechScreenState();
@@ -25,22 +32,20 @@ class _SpeechScreenState extends State<SpeechScreen> {
   int _recordDuration = 0;
   Timer? _timer;
   late Record _audioRecorder;
+  late AudioPlayer _audioPlayer;
   RecordState _recordState = RecordState.stop;
   String? _transcript;
   bool? isSending;
+  late bool isMan;
+
+  List<ChatMessage> messages = [];
 
   final panelController = PanelController();
-
-  final List<ChatMessage> messages = [
-    /*ChatMessage(
-      transcript: "You are an assistant that speaks like Shakespeare",
-      type: ChatType.user,
-    ),*/
-  ];
 
   @override
   void initState() {
     _audioRecorder = Record();
+    _audioPlayer = AudioPlayer();
     if (kDebugMode) {
       print("object");
       print(_transcript);
@@ -108,13 +113,13 @@ class _SpeechScreenState extends State<SpeechScreen> {
     _timer?.cancel();
     _recordDuration = 0;
 
+    String? answer = "";
+
     _setRecordState(RecordState.stop);
 
     final path = await _audioRecorder.stop();
 
     if (path != null) {
-      widget.onStop(path);
-
       try {
         final transcript = await getSTTData(path);
 
@@ -128,17 +133,19 @@ class _SpeechScreenState extends State<SpeechScreen> {
           return;
         }
 
-        setState(() {
-          messages.add(
-            ChatMessage(
-              transcript: transcript,
-              type: ChatType.user,
-            ),
-          );
-        });
+        setState(
+          () {
+            messages.add(
+              ChatMessage(
+                transcript: transcript,
+                type: ChatType.user,
+              ),
+            );
+          },
+        );
 
-        //String? answer = (await ApiChatGPT().getGPTData(messages))?.trim();
-        String answer = ApiChatGPT().sendMessageGPT();
+        /// Normale API nicht mit Streaming API
+        answer = (await ApiChatGPT().getGPTData(messages))?.trim();
 
         setState(
           () {
@@ -152,6 +159,34 @@ class _SpeechScreenState extends State<SpeechScreen> {
             //_transcript = transcript;
           },
         );
+
+        //await _audioPlayer.play();
+        /**
+         * Diese Methode ist für die Streaming API gedacht; Vielleicht für später um User Experience zu verbessern oder 
+         * vielleicht ist diese Streaming API schneller als die normale API;
+         * 
+         *  // Fetch the streaming data*
+            setState(
+              () {
+                messages.add(
+                  ChatMessage(
+                    transcript: "",
+                    type: ChatType.assistent,
+                  ),
+                );
+              },
+            );
+
+            final eventStream = ApiChatGPT().getEventStream();
+            await for (final eventData in eventStream) {
+              setState(
+                () {
+                  messages.last.transcript =
+                      '${messages.last.transcript ?? ''}$eventData';
+                },
+              );
+            }
+        */
       } catch (e) {
         // Code to handle error
       } finally {
@@ -159,6 +194,10 @@ class _SpeechScreenState extends State<SpeechScreen> {
           isSending = false;
         });
       }
+
+      File audioFile = await fetchAndPlayWavFile(answer, isMan);
+      await _audioPlayer.setFilePath(audioFile.path);
+      await _audioPlayer.play();
 
       // i think i don't need this anymore
       //final transcript = await sendAudioFile(path);
@@ -204,6 +243,8 @@ class _SpeechScreenState extends State<SpeechScreen> {
   Widget build(BuildContext context) {
     final panelHeightOpen = MediaQuery.of(context).size.height * 0.85;
     final screenWidth = MediaQuery.of(context).size.width;
+
+    isMan = Provider.of<GenderProvider>(context).isMan;
 
     return Scaffold(
       floatingActionButtonLocation: FloatingActionButtonLocation.centerTop,

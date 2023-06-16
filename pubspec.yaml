@@ -39,6 +39,14 @@ dependencies:
   path_provider: ^2.0.15
   sliding_up_panel: ^2.0.0+1
   dynamic_color: ^1.6.5
+  firebase_core: ^2.13.1
+  firebase_auth: ^4.6.2
+  cloud_firestore: ^4.8.1
+  web_socket_channel: ^2.4.0
+  web_socket_channel_connect: ^1.0.1+6
+  just_audio: ^0.9.34
+  shared_preferences: ^2.1.2
+  provider: ^6.0.5
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -68,6 +76,7 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/images/
+    - test/assets/
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

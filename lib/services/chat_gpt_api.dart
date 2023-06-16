@@ -20,6 +20,7 @@ class ApiChatGPT {
       final jsonResponse = jsonDecode(responseBody);
 
       final transcript = jsonResponse;
+      transcript.replaceAll("\n", "");
 
       if (kDebugMode) {
         print(transcript);
@@ -55,4 +56,30 @@ class ApiChatGPT {
     );
     return response;
   }
+
+  /**
+   * Diese Methode ist für die Streaming API gedacht; Vielleicht für später um User Experience zu verbessern oder 
+   * vielleicht ist diese Streaming API schneller als die normale API;
+   * Hier muss noch geändert werden, dass man man eine POST Request an die Streaming API sendet und dann mit der
+   * Antwort weitermacht. Es muss auch noch der Python Flask Server angepasst werden.
+   * 
+   *   Stream<String> getEventStream() async* {
+        final url = Uri.parse('http://192.168.137.1:5001/chatgpt2');
+        final request = http.Request('GET', url);
+
+        // Set the request headers
+        request.headers['Accept'] = 'text/event-stream';
+
+        final response = await request.send();
+        final stream = response.stream.transform(utf8.decoder);
+
+        await for (final chunk in stream) {
+          final eventData = chunk.replaceAll("\n", "");
+          if (eventData.isNotEmpty) {
+            final trimmedEvent = eventData;
+            yield trimmedEvent;
+          }
+        }
+      }
+   */
 }

@@ -1,6 +1,7 @@
 import 'package:chatbot/theme/app_bar_theme.dart';
-import 'package:chatbot/utils/helper_widgets.dart';
+import 'package:chatbot/utils/gender_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -10,7 +11,17 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  bool _darkModeEnabled = false;
+  late GenderProvider _genderProvider;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _genderProvider = Provider.of<GenderProvider>(context);
+  }
+
+  void _handleSexChange(bool value) {
+    _genderProvider.isMan = value;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,20 +29,41 @@ class _SettingsScreenState extends State<SettingsScreen> {
       appBar: const MyAppBar(title: 'Settings'),
       body: ListView(
         children: [
-          const VerticalSpace(50),
           ListTile(
-            title: const Text('Dark mode'),
+            title: const Text('Profile'),
             subtitle: const Text(
-              'Enable or disable dark mode',
+              'View and edit your profile',
               style: TextStyle(color: Colors.grey),
             ),
-            trailing: Switch(
-              value: _darkModeEnabled,
-              onChanged: (value) {
-                setState(() {
-                  _darkModeEnabled = value;
-                });
-              },
+            trailing: const Icon(Icons.arrow_forward_ios),
+            onTap: () {
+              Navigator.pushNamed(context, '/profile');
+            },
+          ),
+          ListTile(
+            title: const Text('Language'),
+            subtitle: const Text(
+              'Select your sex',
+              style: TextStyle(color: Colors.grey),
+            ),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Radio(
+                  value: true,
+                  groupValue: _genderProvider.isMan,
+                  onChanged: (value) => _handleSexChange(value!),
+                  activeColor:
+                      Colors.blue, // Change the color of the radio button
+                ),
+                Radio(
+                  value: false,
+                  groupValue: _genderProvider.isMan,
+                  onChanged: (value) => _handleSexChange(value!),
+                  activeColor:
+                      Colors.blue, // Change the color of the radio button
+                ),
+              ],
             ),
           ),
           ListTile(
@@ -58,11 +90,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ],
             ),
-          ),
-          ListTile(
-            title: const Text('Logout'),
-            subtitle: const Text('Log out of your account'),
-            onTap: () {},
           ),
         ],
       ),
