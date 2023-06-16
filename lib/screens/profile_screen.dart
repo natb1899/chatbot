@@ -1,7 +1,8 @@
+import 'package:chatbot/model/chat_message.dart';
 import 'package:chatbot/services/auth.dart';
+import 'package:chatbot/services/firestore.dart';
 import 'package:chatbot/theme/app_bar_theme.dart';
 import 'package:chatbot/utils/helper_widgets.dart';
-import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -12,18 +13,9 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  late DatabaseReference _dbRef;
-  late Auth _auth;
-
   @override
   void initState() {
     super.initState();
-    _auth = Auth();
-    _dbRef = FirebaseDatabase.instance
-        .ref()
-        .child('users')
-        .child(_auth.currentUser!.uid)
-        .child('chats');
   }
 
   Future<void> _signOut(BuildContext context) async {
@@ -32,14 +24,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _buttonSubmit() {
     return ElevatedButton(
-      onPressed: () {
-        List<Map<String, String>> messages = [
-          {'name': 'John Doe', 'email': ''},
-          {'name': 'John Doe', 'email': ''},
-          {'name': 'John Doe', 'email': ''},
-          {'name': 'John Doe', 'email': ''}
+      onPressed: () async {
+        await FirestoreService().createUser(name: "test", email: "email");
+        List<ChatMessage> messages = [
+          ChatMessage(
+            transcript: "You are an assistant that speaks like Shakespeare",
+            type: ChatType.user,
+          ),
         ];
-        _dbRef.push().set(messages);
+        await FirestoreService().saveListToFirestore(messages);
       },
       child: const Text('saves'),
     );

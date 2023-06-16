@@ -1,13 +1,13 @@
-import 'package:chatbot/screens/settings_screen.dart';
 import 'package:chatbot/screens/speech_screen.dart';
 import 'package:chatbot/services/auth.dart';
 import 'package:chatbot/theme/app_bar_theme.dart';
 import 'package:chatbot/utils/helper_widgets.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class HomeScreen extends StatelessWidget {
+  //final List<ChatMessage> messages;
+
   const HomeScreen({super.key});
 
   @override
@@ -17,12 +17,8 @@ class HomeScreen extends StatelessWidget {
       drawer: DrawerTheme(
         context: context,
       ),
-      body: Center(
-        child: SpeechScreen(
-          onStop: (path) {
-            if (kDebugMode) print('Recorded file path: $path');
-          },
-        ),
+      body: const Center(
+        child: SpeechScreen(),
       ),
     );
   }
@@ -49,33 +45,54 @@ class DrawerTheme extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           Expanded(
-            child: ListView(
-              padding: const EdgeInsets.only(top: 50, left: 20, right: 20),
-              shrinkWrap: true,
+            child: Column(
               children: [
-                const VerticalSpace(25),
+                const VerticalSpace(75),
                 Text("Chats", style: Theme.of(context).textTheme.displaySmall),
                 const VerticalSpace(50),
-                Container(
-                  margin: const EdgeInsets.only(bottom: 15),
-                  child: const ListTile(
-                    leading: Icon(
-                      Icons.messenger_outline,
-                      size: 20,
-                    ),
-                    title: Text('Chat'),
-                  ),
-                ),
-                Container(
-                  margin: const EdgeInsets.only(bottom: 15),
-                  child: const ListTile(
-                    leading: Icon(
-                      Icons.messenger_outline,
-                      size: 20,
-                    ),
-                    title: Text('Chat'),
-                  ),
-                ),
+                /*StreamBuilder<List<String>>(
+                  stream: FirestoreService().getChatsStream(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      // While waiting for data to load
+                      return const CircularProgressIndicator();
+                    } else if (snapshot.hasError) {
+                      // If an error occurred
+                      return Text('Error: ${snapshot.error}');
+                    } else {
+                      // If data has been loaded successfully
+                      List<String> dataList = snapshot.data ?? [];
+                      return ListView.builder(
+                        padding: const EdgeInsets.only(left: 20, right: 20),
+                        shrinkWrap: true,
+                        itemCount: dataList.length,
+                        itemBuilder: (context, index) {
+                          String chatId = dataList[index];
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 10),
+                            child: ListTile(
+                              leading: const Icon(Icons.chat_bubble_outline),
+                              title: Text(chatId),
+                              onTap: () async {
+                                List<ChatMessage> messages =
+                                    await FirestoreService()
+                                        .getListFromFirestore(chatId: chatId);
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => HomeScreen(
+                                      messages: messages,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          );
+                        },
+                      );
+                    }
+                  },
+                ),*/
               ],
             ),
           ),
@@ -86,10 +103,7 @@ class DrawerTheme extends StatelessWidget {
               borderRadius: BorderRadius.circular(0.0),
             ),
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const SettingsScreen()),
-              );
+              Navigator.pushNamed(context, '/settings');
             },
           ),
         ],

@@ -2,7 +2,7 @@ enum ChatType { user, assistent, system }
 
 class ChatMessage {
   String? transcript;
-  final ChatType type;
+  ChatType type;
 
   Map<String, String> toJson() {
     return {'role': ChatType.user.name, 'content': transcript!};

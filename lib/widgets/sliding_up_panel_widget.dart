@@ -70,10 +70,27 @@ class SlidingPanel extends StatelessWidget {
                   },
                 ),
                 const VerticalSpace(10),*/
-                Text(
-                  "Chat",
-                  style: Theme.of(context).textTheme.displayLarge,
+                Center(
+                  child: Text(
+                    "Chat",
+                    style: Theme.of(context).textTheme.displayLarge,
+                  ),
                 ),
+                /*Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      "Chat",
+                      style: Theme.of(context).textTheme.displayLarge,
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.save_outlined),
+                      onPressed: () async {
+                        await FirestoreService().saveListToFirestore(messages);
+                      },
+                    ),
+                  ],
+                )*/
               ],
             ),
           ),

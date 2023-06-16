@@ -20,6 +20,7 @@ class ApiChatGPT {
       final jsonResponse = jsonDecode(responseBody);
 
       final transcript = jsonResponse;
+      transcript.replaceAll("\n", "");
 
       if (kDebugMode) {
         print(transcript);
