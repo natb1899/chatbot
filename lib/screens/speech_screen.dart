@@ -13,7 +13,6 @@ import 'package:chatbot/widgets/typing_animation.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
-import 'package:provider/provider.dart';
 import 'package:record/record.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 
@@ -32,11 +31,11 @@ class _SpeechScreenState extends State<SpeechScreen> {
   int _recordDuration = 0;
   Timer? _timer;
   late Record _audioRecorder;
-  late AudioPlayer _audioPlayer;
+  //late AudioPlayer _audioPlayer;
   RecordState _recordState = RecordState.stop;
   String? _transcript;
   bool? isSending;
-  late bool isMan;
+  //late bool isMan;
 
   List<ChatMessage> messages = [];
 
@@ -195,9 +194,9 @@ class _SpeechScreenState extends State<SpeechScreen> {
         });
       }
 
-      File audioFile = await fetchAndPlayWavFile(answer, isMan);
-      await _audioPlayer.setFilePath(audioFile.path);
-      await _audioPlayer.play();
+      //File audioFile = await fetchAndPlayWavFile(answer, isMan);
+      //await _audioPlayer.setFilePath(audioFile.path);
+      //await _audioPlayer.play();
 
       // i think i don't need this anymore
       //final transcript = await sendAudioFile(path);
@@ -244,7 +243,7 @@ class _SpeechScreenState extends State<SpeechScreen> {
     final panelHeightOpen = MediaQuery.of(context).size.height * 0.85;
     final screenWidth = MediaQuery.of(context).size.width;
 
-    isMan = Provider.of<GenderProvider>(context).isMan;
+    //isMan = Provider.of<GenderProvider>(context).isMan;
 
     return Scaffold(
       floatingActionButtonLocation: FloatingActionButtonLocation.centerTop,
