@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:io';
 import 'package:chatbot/services/chat_gpt_api.dart';
@@ -11,10 +12,10 @@ import 'package:chatbot/widgets/sliding_up_panel_widget.dart';
 import 'package:chatbot/widgets/typing_animation.dart';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:provider/provider.dart';
 import 'package:record/record.dart';
+import 'package:rive/rive.dart' as rive;
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 
 class SpeechScreen extends StatefulWidget {
@@ -38,7 +39,15 @@ class _SpeechScreenState extends State<SpeechScreen> {
   bool? isSending;
   late bool isMan;
 
+  //only for demo to show the viseme
+  int currentVisemeId = 0;
+
+  //SMITrigger? _bump;
+  rive.SMIInput<double>? _numberExampleInput;
+
   List<ChatMessage> messages = [];
+
+  List<VisemeEvent> visemeEvents = [];
 
   final panelController = PanelController();
 
@@ -54,9 +63,11 @@ class _SpeechScreenState extends State<SpeechScreen> {
   }
 
   void _setRecordState(RecordState state) {
-    setState(() {
-      _recordState = state;
-    });
+    setState(
+      () {
+        _recordState = state;
+      },
+    );
   }
 
   void _showErrorDialog() async {
@@ -107,6 +118,31 @@ class _SpeechScreenState extends State<SpeechScreen> {
         print(e);
       }
     }
+  }
+
+  void _onRiveInit(rive.Artboard artboard) {
+    final controller =
+        rive.StateMachineController.fromArtboard(artboard, 'State');
+    artboard.addController(controller!);
+    //_bump = controller.findInput<bool>('speak') as SMITrigger;
+    _numberExampleInput =
+        controller.findInput<double>('viseme') as rive.SMINumber;
+  }
+
+  void _listenToAudio() {
+    _audioPlayer.positionStream.listen(
+      (event) {
+        double audioTime = event.inMilliseconds.toDouble();
+        setState(
+          () {
+            _numberExampleInput?.value = getVisemeId(audioTime).toDouble();
+            //only for demo to show the viseme
+            currentVisemeId = getVisemeId(audioTime);
+          },
+        );
+        //print(currentVisemeId);
+      },
+    );
   }
 
   Future<void> _stop() async {
@@ -195,9 +231,26 @@ class _SpeechScreenState extends State<SpeechScreen> {
         });
       }
 
-      File audioFile = await fetchAndPlayWavFile(answer, isMan);
-      await _audioPlayer.setFilePath(audioFile.path);
-      await _audioPlayer.play();
+      final result = await getTTSData(answer, isMan);
+      if (result != null) {
+        File audioFile = result['file'] as File;
+        final convertedList = result['convertedList'] as List<VisemeEvent>;
+
+        setState(
+          () {
+            visemeEvents = convertedList;
+          },
+        );
+
+        await _audioPlayer.setFilePath(audioFile.path);
+        await _audioPlayer.load();
+        //_hitBump();
+
+        _listenToAudio();
+
+        await _audioPlayer.play();
+      }
+      //_hitBump();
 
       // i think i don't need this anymore
       //final transcript = await sendAudioFile(path);
@@ -239,6 +292,17 @@ class _SpeechScreenState extends State<SpeechScreen> {
     );
   }
 
+  int getVisemeId(double audioTime) {
+    for (int i = visemeEvents.length - 1; i >= 0; i--) {
+      final visemeEvent = visemeEvents[i];
+      if (visemeEvent.audioOffset <= audioTime) {
+        return visemeEvent.visemeId;
+      }
+    }
+    // Return a default viseme ID if no matching viseme event is found
+    return 0;
+  }
+
   @override
   Widget build(BuildContext context) {
     final panelHeightOpen = MediaQuery.of(context).size.height * 0.85;
@@ -265,24 +329,34 @@ class _SpeechScreenState extends State<SpeechScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
+                Text(
+                  'Current Viseme ID: $currentVisemeId',
+                  style: const TextStyle(fontSize: 20.0),
+                ),
                 Padding(
                   padding: const EdgeInsets.only(top: 50, bottom: 20),
                   child: Container(
                     width: 300.0,
                     height: 300.0,
                     decoration: BoxDecoration(
-                      shape: BoxShape.circle,
+                      shape: BoxShape.rectangle,
+                      borderRadius: BorderRadius.circular(10.0),
                       border: Border.all(
-                        color: Colors.white,
-                        width: 1.0,
+                        color: Theme.of(context).colorScheme.primary,
+                        width: 2.0,
                       ),
                     ),
                     child: ClipRRect(
-                      borderRadius: BorderRadius.circular(150.0),
-                      child: Image.asset(
+                      borderRadius: BorderRadius.circular(0.0),
+                      child: rive.RiveAnimation.asset(
+                          'assets/animations/character-animation.riv',
+                          artboard: isMan ? "Man" : "Woman",
+                          onInit: _onRiveInit,
+                          fit: BoxFit.fitHeight),
+                      /*Image.asset(
                         'assets/images/chatbot_cartoon.png',
                         fit: BoxFit.cover,
-                      ),
+                      )*/
                     ),
                   ),
                 ),
@@ -321,4 +395,11 @@ class _SpeechScreenState extends State<SpeechScreen> {
       ),
     );
   }
+}
+
+class VisemeEvent {
+  final double audioOffset;
+  final int visemeId;
+
+  VisemeEvent(this.audioOffset, this.visemeId);
 }
