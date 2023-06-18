@@ -1,10 +1,12 @@
-import 'package:chatbot/utils/gender_provider.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'dart:io';
 import 'package:chatbot/services/chat_gpt_api.dart';
 import 'package:chatbot/services/speech_to_text_api.dart';
+import 'package:chatbot/services/text_to_speech_api.dart';
 import 'package:chatbot/utils/format_number_utils.dart';
 import 'package:chatbot/model/chat_message.dart';
+import 'package:chatbot/utils/gender_provider.dart';
 import 'package:chatbot/widgets/record_control_widget.dart';
 import 'package:chatbot/widgets/sliding_up_panel_widget.dart';
 import 'package:chatbot/widgets/typing_animation.dart';
@@ -229,9 +231,26 @@ class _SpeechScreenState extends State<SpeechScreen> {
         });
       }
 
-      File audioFile = await fetchAndPlayWavFile(answer, isMan);
-      await _audioPlayer.setFilePath(audioFile.path);
-      await _audioPlayer.play();
+      final result = await getTTSData(answer, isMan);
+      if (result != null) {
+        File audioFile = result['file'] as File;
+        final convertedList = result['convertedList'] as List<VisemeEvent>;
+
+        setState(
+          () {
+            visemeEvents = convertedList;
+          },
+        );
+
+        await _audioPlayer.setFilePath(audioFile.path);
+        await _audioPlayer.load();
+        //_hitBump();
+
+        _listenToAudio();
+
+        await _audioPlayer.play();
+      }
+      //_hitBump();
 
       // i think i don't need this anymore
       //final transcript = await sendAudioFile(path);
