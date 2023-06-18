@@ -32,7 +32,7 @@ class ApiChatGPT {
       if (kDebugMode) {
         print('Request failed with status: ${response.statusCode}.');
       }
-      return null;
+      return "API is not available.";
     }
   }
 
