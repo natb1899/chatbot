@@ -31,6 +31,12 @@ if (flutterMinSdkVersion == null) {
     flutterMinSdkVersion = '21'
 }
 
+def flutterNdkVersion = localProperties.getProperty('flutter.ndkVersion')
+if (flutterNdkVersion == null) {
+    flutterNdkVersion = '25.1.8937393'
+}
+
+
 def flutterTargetSdkVersion = localProperties.getProperty('flutter.targetSdkVersion')
 if (flutterTargetSdkVersion == null) {
     flutterTargetSdkVersion = '33'
@@ -43,7 +49,7 @@ apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
 
 android {
     compileSdkVersion flutterCompileSdkVersion.toInteger()
-    ndkVersion flutter.ndkVersion
+    ndkVersion flutterNdkVersion
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
