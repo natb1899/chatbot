@@ -20,4 +20,13 @@ ThemeData lightTheme = ThemeData(
     ),
     iconColor: Colors.black,
   ),
+  elevatedButtonTheme: ElevatedButtonThemeData(
+    style: ElevatedButton.styleFrom(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10), // Rounded corners
+      ),
+      padding: const EdgeInsets.symmetric(
+          vertical: 16, horizontal: 24), // Button padding
+    ),
+  ),
 );
