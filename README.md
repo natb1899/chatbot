@@ -1,16 +1,19 @@
-# chatbot
+![Logo](https://cdn.discordapp.com/attachments/1110862143013785613/1127974145871851560/feature.jpg)
 
-A new Flutter project.
+This chatbot was created as part of a bachelor thesis.
 
-## Getting Started
+## Used technologies
 
-This project is a starting point for a Flutter application.
+| Technology | Version        |
+| ---------- | -------------- |
+| Flutter    | Flutter 3.12.0 |
+| Dart       | Dart 3.1.0     |
+| Python     | 3.11.0         |
+| Flask      | 2.2.2          |
+| Docker     | 24.0.2         |
 
-A few resources to get you started if this is your first Flutter project:
+## Documentation
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- [Kanban](https://docs.flutter.dev/get-started/codelab)
+- [User guide](https://docs.flutter.dev/get-started/codelab)
+- [technical guide](https://docs.flutter.dev/cookbook)
