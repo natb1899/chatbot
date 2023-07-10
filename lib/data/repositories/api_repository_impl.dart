@@ -1,3 +1,4 @@
+import 'package:chatbot/core/error/exception.dart';
 import 'package:chatbot/core/error/failures.dart';
 import 'package:chatbot/data/datasources/api_remote_datasource.dart';
 import 'package:chatbot/domain/entities/answer_entity.dart';
@@ -18,19 +19,23 @@ class ApiRepositoryImpl implements ApiRepository {
     try {
       final getTranscription = await apiRemoteDataSource.getTranscription(path);
       return Right(getTranscription);
-    } on UnimplementedError {
+    } on ServerException {
       return Left(ServerFailure());
+    } on TimeoutException {
+      return Left(TimeoutFailure());
     }
   }
 
   @override
   Future<Either<Failure, AnswerEntity>> getAnswer(
-      List<ChatMessage> messages) async {
+      List<ChatMessage> messages, String model) async {
     try {
-      final getAnswer = await apiRemoteDataSource.getAnswer(messages);
+      final getAnswer = await apiRemoteDataSource.getAnswer(messages, model);
       return Right(getAnswer);
-    } on UnimplementedError {
+    } on ServerException {
       return Left(ServerFailure());
+    } on TimeoutException {
+      return Left(TimeoutFailure());
     }
   }
 
@@ -40,7 +45,7 @@ class ApiRepositoryImpl implements ApiRepository {
     try {
       final getSpeech = await apiRemoteDataSource.getSpeech(answer, isMan);
       return Right(getSpeech);
-    } on UnimplementedError {
+    } on ServerException {
       return Left(ServerFailure());
     }
   }

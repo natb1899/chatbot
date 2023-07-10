@@ -12,8 +12,6 @@ class AnswerEntity {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'answer': answer,
-    };
+    return {'answer': answer};
   }
 }

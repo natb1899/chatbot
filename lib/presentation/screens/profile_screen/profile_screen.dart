@@ -1,6 +1,5 @@
 import 'package:chatbot/data/datasources/firebase/auth.dart';
 import 'package:chatbot/theme/app_bar_theme.dart';
-import 'package:chatbot/utils/helper_widgets.dart';
 import 'package:flutter/material.dart';
 
 class ProfileScreen extends StatefulWidget {

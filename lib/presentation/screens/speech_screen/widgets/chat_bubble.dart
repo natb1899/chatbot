@@ -4,9 +4,11 @@ import 'package:flutter/material.dart';
 
 class ChatBubble extends StatelessWidget {
   final String? transcript;
+  final String? model;
   final ChatType type;
 
-  const ChatBubble({super.key, this.transcript, required this.type});
+  const ChatBubble(
+      {super.key, this.transcript, this.model, required this.type});
 
   @override
   Widget build(BuildContext context) {

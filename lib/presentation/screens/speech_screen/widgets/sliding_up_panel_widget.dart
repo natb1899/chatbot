@@ -1,5 +1,4 @@
 import 'package:chatbot/data/datasources/firebase/firestore.dart';
-import 'package:chatbot/domain/entities/chat_message_entity.dart';
 import 'package:chatbot/presentation/provider/chat_provider.dart';
 import 'package:chatbot/presentation/screens/speech_screen/widgets/chat_bubble.dart';
 import 'package:chatbot/presentation/screens/speech_screen/widgets/typing_animation.dart';
@@ -13,16 +12,15 @@ class SlidingPanel extends StatelessWidget {
   final String? transcript;
   final bool? isSending;
   final ChatProvider chatProvider;
-  final List<ChatMessage> messages;
 
-  const SlidingPanel(
-      {super.key,
-      required this.controller,
-      required this.panelController,
-      this.transcript,
-      this.isSending,
-      required this.chatProvider,
-      required this.messages});
+  const SlidingPanel({
+    super.key,
+    required this.controller,
+    required this.panelController,
+    this.transcript,
+    this.isSending,
+    required this.chatProvider,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -61,71 +59,79 @@ class SlidingPanel extends StatelessWidget {
       ? panelController.close()
       : panelController.open();
 
+  void _deleteChatMessages(ChatProvider chatProvider) async {
+    chatProvider.messages.clear();
+    await FirestoreService().deleteChatMessages(chatProvider.chatID);
+  }
+
   Widget buildContent(BuildContext context) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Center(
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    IconButton(
-                      onPressed: () {
-                        panelController.close();
-                      },
-                      icon: const Icon(
-                        Icons.close_outlined,
-                        color: Colors.white,
-                      ),
-                    ),
-                    Text(
-                      chatProvider.chatID == ""
-                          ? "New Chat"
-                          : chatProvider.chatID,
-                      style: Theme.of(context).textTheme.displaySmall,
-                    ),
-                    messages.isEmpty
-                        ? IconButton(
-                            onPressed: () {
-                              panelController.close();
-                            },
-                            icon: const Icon(
-                              Icons.close_outlined,
-                              color: Colors.white,
-                            ),
-                          )
-                        : PopupMenuButton(
-                            onSelected: (value) async {
-                              if (value == "save") {
-                                chatProvider.setChatId(
-                                  await FirestoreService().saveChatMessages(
-                                      chatProvider.chatID, messages),
-                                );
-                              } else if (value == "delete") {
-                                chatProvider.chatID == ""
-                                    ? messages.clear()
-                                    : messages.clear();
-                                await FirestoreService()
-                                    .deleteChatMessages(chatProvider.chatID);
-                                chatProvider.setChatId("");
-                              }
-                            },
-                            itemBuilder: (context) => [
-                              const PopupMenuItem(
-                                value: "save",
-                                child: Text("Save Chat"),
-                              ),
-                              const PopupMenuItem(
-                                value: "delete",
-                                child: Text("Delete Chat"),
-                              )
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                chatProvider.chatID == "" ? "New Chat" : chatProvider.chatID,
+                style: Theme.of(context).textTheme.displaySmall,
+              ),
+              chatProvider.messages.isEmpty
+                  ? Container()
+                  : Row(
+                      children: [
+                        Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                            boxShadow: [
+                              BoxShadow(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  spreadRadius: 0),
                             ],
                           ),
-                  ],
-                ),
-              ],
-            ),
+                          height: 40,
+                          width: 40,
+                          child: IconButton(
+                            onPressed: () async {
+                              chatProvider.setChatId(
+                                await FirestoreService().saveChatMessages(
+                                    chatProvider.chatID, chatProvider.messages),
+                              );
+                            },
+                            icon: const Icon(
+                              Icons.save_outlined,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                          ),
+                        ),
+                        const HorizontalSpace(10),
+                        Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                            boxShadow: [
+                              BoxShadow(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  spreadRadius: 0),
+                            ],
+                          ),
+                          height: 40,
+                          width: 40,
+                          child: IconButton(
+                            onPressed: () async {
+                              chatProvider.chatID == ""
+                                  ? chatProvider.messages.clear()
+                                  : _deleteChatMessages(chatProvider);
+                              chatProvider.setChatId("");
+                            },
+                            icon: const Icon(
+                              Icons.delete_outline,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+            ],
           ),
           const VerticalSpace(20),
         ],
@@ -135,7 +141,7 @@ class SlidingPanel extends StatelessWidget {
     final chatScrollController = ScrollController();
     return Column(
       children: [
-        messages.isEmpty
+        chatProvider.messages.isEmpty
             ? Column(
                 children: [
                   const Center(
@@ -152,9 +158,9 @@ class SlidingPanel extends StatelessWidget {
                       const TypingAnimaton(vertical: 15, horizontal: 0),
                     ListView.builder(
                       shrinkWrap: true,
-                      itemCount: messages.length,
+                      itemCount: chatProvider.messages.length,
                       itemBuilder: (BuildContext context, int index) {
-                        var chat = messages[index];
+                        var chat = chatProvider.messages[index];
                         return ChatBubble(
                           transcript: chat.transcript,
                           type: chat.type,

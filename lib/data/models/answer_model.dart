@@ -4,9 +4,7 @@ class AnswerModel extends AnswerEntity {
   AnswerModel({required super.answer});
 
   factory AnswerModel.fromJson(Map<String, dynamic> json) {
-    return AnswerModel(
-      answer: json['choices'][0]['message']['content'],
-    );
+    return AnswerModel(answer: json['choices'][0]['message']['content']);
   }
 
   @override

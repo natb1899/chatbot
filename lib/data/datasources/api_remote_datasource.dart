@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:chatbot/core/error/exception.dart';
 import 'package:chatbot/data/models/answer_model.dart';
 import 'package:chatbot/data/models/speech_model.dart';
 import 'package:chatbot/data/models/transcription_model.dart';
@@ -13,7 +14,7 @@ import 'package:path_provider/path_provider.dart';
 
 abstract class ApiRemoteDataSource {
   Future<TranscriptionModel> getTranscription(String path);
-  Future<AnswerModel> getAnswer(List<ChatMessage> messages);
+  Future<AnswerModel> getAnswer(List<ChatMessage> messages, String model);
   Future<SpeechModel> getSpeech(String answer, bool isMan);
 }
 
@@ -32,14 +33,18 @@ class ApiRemoteDataSourceImpl implements ApiRemoteDataSource {
 
     url = Uri.parse(Endpoints.apiURL("whisper"));
 
-    final response = await _uploadFile(url, file, "audio.m4a")
-        .timeout(const Duration(seconds: 10));
+    try {
+      final response = await _uploadFile(url, file, "audio.m4a")
+          .timeout(const Duration(seconds: 10));
 
-    if (response.statusCode == 200) {
-      final responseBody = await response.stream.bytesToString();
-      return TranscriptionModel.fromJson(json.decode(responseBody));
-    } else {
-      throw Exception('Failed to load transcription');
+      if (response.statusCode == 200) {
+        final responseBody = await response.stream.bytesToString();
+        return TranscriptionModel.fromJson(json.decode(responseBody));
+      } else {
+        throw ServerException();
+      }
+    } catch (e) {
+      throw TimeoutException();
     }
   }
 
@@ -63,28 +68,37 @@ class ApiRemoteDataSourceImpl implements ApiRemoteDataSource {
   }
 
   @override
-  Future<AnswerModel> getAnswer(List<ChatMessage> messages) async {
+  Future<AnswerModel> getAnswer(
+      List<ChatMessage> messages, String model) async {
     final url = Uri.parse(Endpoints.apiURL("chatgpt"));
 
-    final response = await _sendMessageList(url, messages);
+    try {
+      final response = await _sendMessageList(url, messages, model)
+          .timeout(const Duration(seconds: 10));
 
-    if (response.statusCode == 200) {
-      final responseBody = utf8.decode(response.bodyBytes);
-      return AnswerModel.fromJson(json.decode(responseBody));
-    } else {
-      throw Exception('Failed to load transcription');
+      if (response.statusCode == 200) {
+        final responseBody = utf8.decode(response.bodyBytes);
+        return AnswerModel.fromJson(json.decode(responseBody));
+      } else {
+        throw ServerException();
+      }
+    } catch (e) {
+      throw TimeoutException();
     }
   }
 
   Future<http.Response> _sendMessageList(
-      Uri url, List<ChatMessage> messages) async {
+      Uri url, List<ChatMessage> messages, String model) async {
     final List<Map<String, String>> jsonData =
         messages.map((item) => item.toJson()).toList();
 
     final response = await httpClient.post(
       url,
       headers: {'Content-Type': 'application/json'},
-      body: json.encode(jsonData),
+      body: json.encode({
+        'model': model,
+        'messages': jsonData,
+      }),
     );
     return response;
   }
@@ -134,7 +148,7 @@ class ApiRemoteDataSourceImpl implements ApiRemoteDataSource {
         },
       );
     } else {
-      throw Exception('Failed to load speech');
+      throw ServerException();
     }
   }
 }

@@ -1,29 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class GenderProvider with ChangeNotifier {
-  bool _isMan;
+class ModelProvider with ChangeNotifier {
+  String _model;
 
-  GenderProvider({required bool isMan}) : _isMan = isMan {
+  ModelProvider({required String model}) : _model = model {
     _loadState();
   }
 
-  bool get isMan => _isMan;
+  String get model => _model;
 
-  set isMan(bool newValue) {
-    _isMan = newValue;
+  set setModel(String newValue) {
+    _model = newValue;
     _saveState();
     notifyListeners();
   }
 
   Future<void> _loadState() async {
     final prefs = await SharedPreferences.getInstance();
-    _isMan = prefs.getBool('isMan') ?? true;
+    _model = prefs.getString('model') ?? 'gpt-3.5-turbo';
     notifyListeners();
   }
 
   Future<void> _saveState() async {
     final prefs = await SharedPreferences.getInstance();
-    prefs.setBool('isMan', _isMan);
+    prefs.setString('model', _model);
   }
 }

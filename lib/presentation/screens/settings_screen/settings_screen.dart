@@ -1,3 +1,4 @@
+import 'package:chatbot/presentation/provider/model_provider.dart';
 import 'package:chatbot/theme/app_bar_theme.dart';
 import 'package:chatbot/presentation/provider/gender_provider.dart';
 import 'package:flutter/material.dart';
@@ -12,15 +13,21 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   late GenderProvider _genderProvider;
+  late ModelProvider _modelProvider;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     _genderProvider = Provider.of<GenderProvider>(context);
+    _modelProvider = Provider.of<ModelProvider>(context);
   }
 
-  void _handleSexChange(bool value) {
+  void _handleGenderChange(bool value) {
     _genderProvider.isMan = value;
+  }
+
+  void _handleModelChange(String value) {
+    _modelProvider.setModel = value;
   }
 
   @override
@@ -43,7 +50,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ListTile(
             title: const Text('Language'),
             subtitle: const Text(
-              'Select your sex',
+              'Select your gender',
               style: TextStyle(color: Colors.grey),
             ),
             trailing: Row(
@@ -52,16 +59,37 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Radio(
                   value: true,
                   groupValue: _genderProvider.isMan,
-                  onChanged: (value) => _handleSexChange(value!),
+                  onChanged: (value) => _handleGenderChange(value!),
                   activeColor:
                       Colors.blue, // Change the color of the radio button
                 ),
                 Radio(
                   value: false,
                   groupValue: _genderProvider.isMan,
-                  onChanged: (value) => _handleSexChange(value!),
+                  onChanged: (value) => _handleGenderChange(value!),
                   activeColor:
                       Colors.blue, // Change the color of the radio button
+                ),
+              ],
+            ),
+          ),
+          ListTile(
+            title: const Text('GPT-Model'),
+            subtitle: const Text(
+              'Select the model',
+              style: TextStyle(color: Colors.grey),
+            ),
+            trailing: DropdownButton<String>(
+              value: _modelProvider.model,
+              onChanged: (value) => _handleModelChange(value!),
+              items: const [
+                DropdownMenuItem(
+                  value: 'gpt-3.5-turbo',
+                  child: Text('GPT3.5-Turbo'),
+                ),
+                DropdownMenuItem(
+                  value: 'gpt-4',
+                  child: Text('GPT-4'),
                 ),
               ],
             ),

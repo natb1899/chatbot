@@ -3,10 +3,12 @@ import 'package:chatbot/data/repositories/api_repository_impl.dart';
 import 'package:chatbot/domain/entities/viseme_entity.dart';
 import 'package:chatbot/domain/usecases/get_speech.dart';
 import 'package:chatbot/presentation/provider/chat_provider.dart';
+import 'package:chatbot/presentation/provider/model_provider.dart';
 import 'package:chatbot/presentation/provider/sending_provider.dart';
 import 'package:chatbot/presentation/screens/speech_screen/widgets/record_control_widget.dart';
 import 'package:chatbot/presentation/screens/speech_screen/widgets/sliding_up_panel_widget.dart';
 import 'package:chatbot/presentation/screens/speech_screen/widgets/typing_animation.dart';
+import 'package:chatbot/utils/helper_widgets.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:io';
@@ -32,6 +34,7 @@ class _SpeechScreenState extends State<SpeechScreen> {
   late AudioPlayer _audioPlayer;
   String? _transcript;
   late bool isMan;
+  late String gptModel;
 
   late PanelController _panelController;
   late SendingProvider sendingProvider;
@@ -64,6 +67,8 @@ class _SpeechScreenState extends State<SpeechScreen> {
     final screenWidth = MediaQuery.of(context).size.width;
 
     isMan = Provider.of<GenderProvider>(context).isMan;
+    gptModel = Provider.of<ModelProvider>(context).model;
+
     chatProvider = Provider.of<ChatProvider>(context);
     sendingProvider = Provider.of<SendingProvider>(context);
 
@@ -87,7 +92,6 @@ class _SpeechScreenState extends State<SpeechScreen> {
           transcript: _transcript,
           chatProvider: chatProvider,
           isSending: sendingProvider.isSending,
-          messages: chatProvider.messages,
         ),
         borderRadius: const BorderRadius.vertical(
           top: Radius.circular(10),
@@ -100,26 +104,15 @@ class _SpeechScreenState extends State<SpeechScreen> {
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
               Padding(
-                padding: const EdgeInsets.only(top: 50, bottom: 20),
-                child: Container(
-                  width: 300.0,
-                  height: 300.0,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.rectangle,
-                    borderRadius: BorderRadius.circular(10.0),
-                    border: Border.all(
-                      color: Theme.of(context).colorScheme.primary,
-                      width: 2.0,
-                    ),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(0.0),
-                    child: rive.RiveAnimation.asset(
-                        'assets/animations/character-animation.riv',
-                        artboard: isMan ? "Man" : "Woman",
-                        onInit: _onRiveInit,
-                        fit: BoxFit.fitHeight),
-                  ),
+                padding: const EdgeInsets.only(bottom: 5),
+                child: SizedBox(
+                  width: 400.0,
+                  height: 400.0,
+                  child: rive.RiveAnimation.asset(
+                      'assets/animations/3d-avatar-animation.riv',
+                      artboard: isMan ? "Man" : "Woman",
+                      onInit: _onRiveInit,
+                      fit: BoxFit.fitHeight),
                 ),
               ),
               sendingProvider.isSending
@@ -170,24 +163,33 @@ class _SpeechScreenState extends State<SpeechScreen> {
     if (path != null) {
       try {
         await chatProvider.getTranscriptionSTT(path);
-        await chatProvider.getChatGPT();
+        await chatProvider.getChatGPT(gptModel);
         sendingProvider.isSending = false;
         _playAudio(chatProvider.messages.last.transcript);
       } catch (e) {
-        if (kDebugMode) {
-          print(e);
-        }
-        _showErrorDialog("Error");
+        _showErrorDialog(e.toString());
       }
     }
   }
 
   void _showErrorDialog(String? text) async {
+    sendingProvider.isSending = false;
     await showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Center(child: Text(text!)),
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          title: Center(
+            child: Column(
+              children: [
+                Image.asset(
+                  'assets/images/supermeme.png',
+                ),
+                const VerticalSpace(15),
+                Text(text!, style: Theme.of(context).textTheme.bodyMedium),
+              ],
+            ),
+          ),
           actions: <Widget>[
             Center(
               child: ElevatedButton(
@@ -217,7 +219,9 @@ class _SpeechScreenState extends State<SpeechScreen> {
 
       transcription.fold(
         (failure) {
-          print('Failed to get transcription: $failure');
+          if (kDebugMode) {
+            print('$failure');
+          }
         },
         (speechEntity) {
           file = speechEntity.file;

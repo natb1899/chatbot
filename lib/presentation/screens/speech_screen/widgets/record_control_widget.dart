@@ -36,11 +36,22 @@ class _RecordControlState extends State<RecordControl> {
           },
         );
       },
+      onPanEnd: (details) async {
+        setState(
+          () {
+            _isTapped = false;
+            _isListening = false;
+            widget.stop();
+          },
+        );
+      },
       onTapCancel: () {
-        setState(() {
-          _isTapped = false;
-          _isListening = false;
-        });
+        setState(
+          () {
+            _isTapped = false;
+            _isListening = false;
+          },
+        );
       },
       child: SizedBox(
         height: 75,

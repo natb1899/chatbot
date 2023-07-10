@@ -1,7 +1,7 @@
 import 'package:chatbot/domain/entities/chat_message_entity.dart';
 import 'package:chatbot/domain/usecases/get_answer.dart';
 import 'package:chatbot/domain/usecases/get_transcription.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 
 import 'package:chatbot/data/datasources/api_remote_datasource.dart';
 import 'package:chatbot/data/repositories/api_repository_impl.dart';
@@ -40,7 +40,9 @@ class ChatProvider extends ChangeNotifier {
 
     transcription.fold(
       (failure) {
-        print('Failed to get transcription: $failure');
+        if (kDebugMode) {
+          print('$failure');
+        }
       },
       (transcriptionEntity) {
         addMessage(
@@ -54,12 +56,14 @@ class ChatProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> getChatGPT() async {
-    var answer = await getAnswer.execute(messages);
+  Future<void> getChatGPT(String gptModel) async {
+    var answer = await getAnswer.execute(messages, gptModel);
 
     answer.fold(
       (failure) {
-        print('Failed to get transcription: $failure');
+        if (kDebugMode) {
+          print('$failure');
+        }
       },
       (answerEntity) {
         addMessage(

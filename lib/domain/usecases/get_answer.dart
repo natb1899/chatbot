@@ -10,7 +10,7 @@ class GetAnswer {
   GetAnswer(this.apiRepository);
 
   Future<Either<Failure, AnswerEntity>> execute(
-      List<ChatMessage> messages) async {
-    return await apiRepository.getAnswer(messages);
+      List<ChatMessage> messages, String model) async {
+    return await apiRepository.getAnswer(messages, model);
   }
 }
