@@ -19,9 +19,9 @@ jobs:
       - run: flutter pub get
       - run: flutter test
       - run: flutter clean
-      - run: flutter build appbundle
+      - run: flutter build appbundle --debug
       - uses: ncipollo/release-action@v1
         with:
-          tag: 5.0.0
-          artifacts: "build/app/outputs/bundle/release/*.aab"
+          tag: 4.0.0
+          artifacts: "build/app/outputs/bundle/debug/*.aab"
           token: ${{ secrets.TOKEN }}
