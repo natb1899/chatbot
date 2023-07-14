@@ -1,4 +1,4 @@
-name: Build and Release AAB
+name: Build and Release APK
 
 on:
   push:
@@ -18,10 +18,9 @@ jobs:
       - uses: subosito/flutter-action@v2
       - run: flutter pub get
       - run: flutter test
-      - run: flutter clean
-      - run: flutter build appbundle --debug
+      - run: flutter build apk --debug --split-per-abi
       - uses: ncipollo/release-action@v1
         with:
-          tag: 4.0.0
-          artifacts: "build/app/outputs/bundle/debug/*.aab"
+          tag: 5.0.0
+          artifacts: "build/app/outputs/apk/debug/*.apk"
           token: ${{ secrets.TOKEN }}
