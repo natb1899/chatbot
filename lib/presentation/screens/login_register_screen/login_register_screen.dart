@@ -1,5 +1,4 @@
 import 'package:chatbot/data/datasources/firebase/auth.dart';
-import 'package:chatbot/theme/app_bar_theme.dart';
 import 'package:chatbot/utils/helper_widgets.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -20,14 +19,19 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> signInWithEmailAndPassword() async {
     try {
+      // Calls the signInWithEmailAndPassword method from the Auth class
       await Auth().signInWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
+        email: _emailController.text
+            .trim(), // Retrieves the email value from the _emailController
+        password: _passwordController.text
+            .trim(), // Retrieves the password value from the _passwordController
       );
     } on FirebaseAuthException catch (e) {
+      // Catches any FirebaseAuthException that occurs during the sign-in process
       setState(
         () {
-          errorMessage = e.message;
+          errorMessage =
+              e.message; // Sets the error message to the exception's message
         },
       );
     }
@@ -35,14 +39,19 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> signUpWithEmailAndPassword() async {
     try {
+      // Calls the signUpWithEmailAndPassword method from the Auth class
       await Auth().signUpWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
+        email: _emailController.text
+            .trim(), // Retrieves the email value from the _emailController
+        password: _passwordController.text
+            .trim(), // Retrieves the password value from the _passwordController
       );
     } on FirebaseAuthException catch (e) {
+      // Catches any FirebaseAuthException that occurs during the sign-up process
       setState(
         () {
-          errorMessage = e.message;
+          errorMessage =
+              e.message; // Sets the error message to the exception's message
         },
       );
     }
@@ -54,6 +63,7 @@ class _LoginPageState extends State<LoginPage> {
   ) {
     return TextField(
       controller: controller,
+      obscureText: title == "password" ? true : false,
       style: const TextStyle(color: Colors.black),
       decoration: InputDecoration(
         labelText: title,
@@ -95,8 +105,8 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: MyAppBar(title: isLogin ? 'Login' : 'Register'),
       body: Container(
+        color: isLogin ? Colors.white : Colors.grey[200],
         height: double.infinity,
         width: double.infinity,
         padding: const EdgeInsets.all(20),
@@ -104,12 +114,18 @@ class _LoginPageState extends State<LoginPage> {
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            Image.asset(
+              "assets/images/logo.png",
+              height: 50,
+              width: 50,
+            ),
+            const VerticalSpace(20),
             _entryField("email", _emailController),
             const VerticalSpace(20),
             _entryField("password", _passwordController),
             _errorMessage(),
             _submitButton(),
-            const VerticalSpace(30),
+            const VerticalSpace(10),
             _loginOrRegisterButton(),
           ],
         ),

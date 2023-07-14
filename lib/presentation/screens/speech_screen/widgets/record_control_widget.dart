@@ -1,10 +1,18 @@
+import 'package:chatbot/presentation/provider/recording_provider.dart';
 import 'package:flutter/material.dart';
 
 class RecordControl extends StatefulWidget {
   final Function start;
   final Function stop;
+  final bool? isBlocked;
+  final RecordingProvider isRecording;
 
-  const RecordControl({Key? key, required this.start, required this.stop})
+  const RecordControl(
+      {Key? key,
+      required this.start,
+      required this.stop,
+      this.isBlocked,
+      required this.isRecording})
       : super(key: key);
 
   @override
@@ -12,81 +20,69 @@ class RecordControl extends StatefulWidget {
 }
 
 class _RecordControlState extends State<RecordControl> {
-  bool _isListening = false;
-  bool _isTapped = false;
-
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: (details) async {
-        setState(
-          () {
-            _isTapped = true;
-            _isListening = true;
-            widget.start();
-          },
-        );
-      },
-      onTapUp: (details) async {
-        setState(
-          () {
-            _isTapped = false;
-            _isListening = false;
-            widget.stop();
-          },
-        );
-      },
-      onPanEnd: (details) async {
-        setState(
-          () {
-            _isTapped = false;
-            _isListening = false;
-            widget.stop();
-          },
-        );
-      },
-      onTapCancel: () {
-        setState(
-          () {
-            _isTapped = false;
-            _isListening = false;
-          },
-        );
-      },
-      child: SizedBox(
-        height: 75,
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                _isTapped
-                    ? Theme.of(context).colorScheme.tertiary
-                    : Theme.of(context).colorScheme.primary,
-                _isTapped
-                    ? Theme.of(context).colorScheme.primary
-                    : Theme.of(context).colorScheme.tertiary,
+    return widget.isBlocked!
+        ? Container(
+            decoration: BoxDecoration(
+              boxShadow: [
+                BoxShadow(
+                  color: Theme.of(context).colorScheme.error,
+                  blurRadius: 5,
+                  spreadRadius: 0.5,
+                ),
               ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Theme.of(context).colorScheme.primary,
-                spreadRadius: 2,
-                blurRadius: 5,
-                offset: const Offset(0, 3), // changes position of shadow
+            height: 75,
+            child: Container(
+              color: Theme.of(context).colorScheme.error,
+              child: Center(
+                child: Icon(
+                  Icons.block_outlined,
+                  color: Theme.of(context).indicatorColor,
+                  size: 32,
+                ),
               ),
-            ],
-          ),
-          child: Center(
-            child: Icon(
-              _isListening ? Icons.mic : Icons.mic_none,
-              color: Theme.of(context).indicatorColor,
-              size: 32,
             ),
-          ),
-        ),
-      ),
-    );
+          )
+        : GestureDetector(
+            onTapDown: (details) async {
+              widget.isRecording.isRecording = true;
+              widget.start();
+            },
+            onTapUp: (details) async {
+              widget.isRecording.isRecording = false;
+              widget.stop();
+            },
+            onPanEnd: (details) async {
+              widget.isRecording.isRecording = false;
+              widget.stop();
+            },
+            onTapCancel: () {
+              widget.isRecording.isRecording = false;
+            },
+            child: Container(
+              decoration: BoxDecoration(
+                boxShadow: [
+                  BoxShadow(
+                    color: Theme.of(context).colorScheme.primary,
+                    blurRadius: 5,
+                    spreadRadius: 0.5,
+                  ),
+                ],
+              ),
+              height: 75,
+              child: Container(
+                color: Theme.of(context).colorScheme.primary,
+                child: Center(
+                  child: Icon(
+                    widget.isRecording.isRecording ? Icons.mic : Icons.mic_none,
+                    color: Theme.of(context).indicatorColor,
+                    size: 32,
+                  ),
+                ),
+              ),
+            ),
+          );
   }
 }

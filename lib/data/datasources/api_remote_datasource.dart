@@ -27,23 +27,32 @@ class ApiRemoteDataSourceImpl implements ApiRemoteDataSource {
     late final Uri url;
     late final File file;
 
+    // Checks if the file is present in the cache
     if (await _isFileInCache(path)) {
+      // Assigns the file from the given path
       file = File(path);
     }
 
+    // Parses the API URL using the 'whisper' endpoint
     url = Uri.parse(Endpoints.apiURL("whisper"));
 
     try {
+      // Uploads the file and sets a timeout of 10 seconds
       final response = await _uploadFile(url, file, "audio.m4a")
           .timeout(const Duration(seconds: 10));
 
-      if (response.statusCode == 200) {
-        final responseBody = await response.stream.bytesToString();
-        return TranscriptionModel.fromJson(json.decode(responseBody));
-      } else {
+      // Throws a ServerException if the response status code is not 200
+      if (response.statusCode != 200) {
         throw ServerException();
       }
+
+      // Converts the response stream to a string
+      final responseBody = await response.stream.bytesToString();
+
+      // Parses the JSON response and returns a TranscriptionModel object
+      return TranscriptionModel.fromJson(json.decode(responseBody));
     } catch (e) {
+      // Throws a TimeoutException if an error occurs during the upload or timeout
       throw TimeoutException();
     }
   }
