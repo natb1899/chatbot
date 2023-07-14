@@ -78,7 +78,7 @@ android {
         minSdkVersion flutterMinSdkVersion.toInteger()
         targetSdkVersion flutterTargetSdkVersion.toInteger()
         versionCode 3
-        versionName "1.0.2"
+        versionName "1.0.3"
         resValue "string", "app_name", "Chatbot"
     }
 
