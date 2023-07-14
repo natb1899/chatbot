@@ -1,7 +1,6 @@
 import 'package:chatbot/data/datasources/firebase/firestore.dart';
 import 'package:chatbot/presentation/provider/chat_provider.dart';
 import 'package:chatbot/presentation/screens/speech_screen/widgets/chat_bubble.dart';
-import 'package:chatbot/presentation/screens/speech_screen/widgets/typing_animation.dart';
 import 'package:chatbot/utils/helper_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
@@ -39,18 +38,12 @@ class SlidingPanel extends StatelessWidget {
   }
 
   Widget buildDragHandle(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
     return GestureDetector(
       onTap: togglePanel,
       child: Center(
-        child: Container(
-          width: screenWidth,
-          height: 5,
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.primary,
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
+        child: !panelController.isPanelOpen
+            ? const Icon(Icons.keyboard_arrow_up_outlined)
+            : const Icon(Icons.keyboard_arrow_down_outlined),
       ),
     );
   }
@@ -142,20 +135,16 @@ class SlidingPanel extends StatelessWidget {
     return Column(
       children: [
         chatProvider.messages.isEmpty
-            ? Column(
-                children: [
-                  const Center(
-                    child: Text('Start a new chat to see the chat history'),
-                  ),
-                  if (isSending == true)
-                    const TypingAnimaton(vertical: 15, horizontal: 0),
-                ],
+            ? const Text(
+                'Start a new chat with the avatar to see the conversation here.',
+                style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w400),
               )
             : SingleChildScrollView(
                 child: Column(
                   children: [
-                    if (isSending == true)
-                      const TypingAnimaton(vertical: 15, horizontal: 0),
                     ListView.builder(
                       shrinkWrap: true,
                       itemCount: chatProvider.messages.length,

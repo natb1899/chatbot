@@ -2,12 +2,12 @@ import 'package:chatbot/data/datasources/api_remote_datasource.dart';
 import 'package:chatbot/data/repositories/api_repository_impl.dart';
 import 'package:chatbot/domain/entities/viseme_entity.dart';
 import 'package:chatbot/domain/usecases/get_speech.dart';
+import 'package:chatbot/presentation/provider/block_provider.dart';
 import 'package:chatbot/presentation/provider/chat_provider.dart';
 import 'package:chatbot/presentation/provider/model_provider.dart';
-import 'package:chatbot/presentation/provider/sending_provider.dart';
+import 'package:chatbot/presentation/provider/recording_provider.dart';
 import 'package:chatbot/presentation/screens/speech_screen/widgets/record_control_widget.dart';
 import 'package:chatbot/presentation/screens/speech_screen/widgets/sliding_up_panel_widget.dart';
-import 'package:chatbot/presentation/screens/speech_screen/widgets/typing_animation.dart';
 import 'package:chatbot/utils/helper_widgets.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
@@ -16,6 +16,7 @@ import 'package:chatbot/presentation/provider/gender_provider.dart';
 
 import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:record/record.dart';
 import 'package:rive/rive.dart' as rive;
@@ -37,21 +38,20 @@ class _SpeechScreenState extends State<SpeechScreen> {
   late String gptModel;
 
   late PanelController _panelController;
-  late SendingProvider sendingProvider;
+  late RecordingProvider recordingProvider;
+  late BlockProvider blockingProvider;
   late ChatProvider chatProvider;
 
   List<Viseme> visemeEvents = [];
-  rive.SMIInput<double>? _numberExampleInput;
+  rive.SMIInput<double>? _numberVisemesInput;
+  rive.SMIInput<bool>? _boolThinkingInput;
+  rive.SMIInput<bool>? _boolListeningInput;
 
   @override
   void initState() {
     _audioRecorder = Record();
-    _audioPlayer = AudioPlayer();
     _panelController = PanelController();
-    if (kDebugMode) {
-      print("object");
-      print(_transcript);
-    }
+    checkAudioPermission();
     super.initState();
   }
 
@@ -70,14 +70,20 @@ class _SpeechScreenState extends State<SpeechScreen> {
     gptModel = Provider.of<ModelProvider>(context).model;
 
     chatProvider = Provider.of<ChatProvider>(context);
-    sendingProvider = Provider.of<SendingProvider>(context);
+    recordingProvider = Provider.of<RecordingProvider>(context);
+    blockingProvider = Provider.of<BlockProvider>(context);
 
     return Scaffold(
       floatingActionButtonLocation: FloatingActionButtonLocation.centerTop,
       floatingActionButton: Column(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          RecordControl(start: _start, stop: _stop),
+          RecordControl(
+            start: _start,
+            stop: _stop,
+            isBlocked: blockingProvider.isBlocked,
+            isRecording: recordingProvider,
+          ),
         ],
       ),
       body: SlidingUpPanel(
@@ -91,7 +97,6 @@ class _SpeechScreenState extends State<SpeechScreen> {
           panelController: _panelController,
           transcript: _transcript,
           chatProvider: chatProvider,
-          isSending: sendingProvider.isSending,
         ),
         borderRadius: const BorderRadius.vertical(
           top: Radius.circular(10),
@@ -109,25 +114,23 @@ class _SpeechScreenState extends State<SpeechScreen> {
                   width: 400.0,
                   height: 400.0,
                   child: rive.RiveAnimation.asset(
-                      'assets/animations/3d-avatar-animation.riv',
+                      'assets/animations/avatars.riv',
                       artboard: isMan ? "Man" : "Woman",
                       onInit: _onRiveInit,
                       fit: BoxFit.fitHeight),
                 ),
               ),
-              sendingProvider.isSending
-                  ? const TypingAnimaton(vertical: 15.0, horizontal: 0.0)
-                  : Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 15),
-                      child: SizedBox(
-                        width: screenWidth * 0.75,
-                        child: Text(
-                          "Tap and hold the button to record your message",
-                          textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.displaySmall,
-                        ),
-                      ),
-                    )
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 15),
+                child: SizedBox(
+                  width: screenWidth * 0.75,
+                  child: Text(
+                    "Tap and hold the button to record your message",
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.displaySmall,
+                  ),
+                ),
+              )
             ],
           ),
         ),
@@ -135,20 +138,32 @@ class _SpeechScreenState extends State<SpeechScreen> {
     );
   }
 
+  // Method to check audio permission asynchronously
+  void checkAudioPermission() async {
+    // Get the current status of the microphone permission
+    var status = await Permission.microphone.status;
+
+    // If the permission is denied, request it
+    if (status.isDenied) {
+      await Permission.microphone.request();
+    }
+  }
+
+  // Method to start recording audio
   Future<void> _start() async {
     try {
+      // Check if the app has permission to record audio
       if (await _audioRecorder.hasPermission()) {
-        final isSupported = await _audioRecorder.isEncoderSupported(
-          AudioEncoder.aacLc,
+        setState(
+          () {
+            _boolListeningInput?.value = recordingProvider.isRecording;
+          },
         );
-
-        if (kDebugMode) {
-          print('${AudioEncoder.aacLc.name} supported: $isSupported');
-        }
-
-        sendingProvider.isSending = true;
-
+        // Start recording audio
         await _audioRecorder.start();
+      } else {
+        // Show an error dialog if the permission to record audio is denied
+        _showErrorDialog("Permission denied");
       }
     } catch (e) {
       if (kDebugMode) {
@@ -157,23 +172,52 @@ class _SpeechScreenState extends State<SpeechScreen> {
     }
   }
 
+  // Method to stop recording audio
   Future<void> _stop() async {
+    // Stop the audio recording and get the file path
     final path = await _audioRecorder.stop();
 
+    setState(
+      () {
+        _boolListeningInput?.value = recordingProvider.isRecording;
+      },
+    );
+
+    // Set the blocking flag to indicate that the record button is blocked
+    blockingProvider.isBlocked = true;
+
+    // If a valid file path is obtained
     if (path != null) {
       try {
+        // Update the state by setting a boolean value
+        setState(
+          () {
+            _boolThinkingInput?.value = true;
+          },
+        );
+
+        // Get the transcription using speech-to-text (STT)
         await chatProvider.getTranscriptionSTT(path);
+
+        // Get the response from ChatGPT using the GPT model
         await chatProvider.getChatGPT(gptModel);
-        sendingProvider.isSending = false;
+
+        // Play the audio of the last message's transcript
         _playAudio(chatProvider.messages.last.transcript);
       } catch (e) {
+        setState(
+          () {
+            _boolThinkingInput?.value = false;
+          },
+        );
+        // If an error occurs, unblock the record button and show an error dialog
+        blockingProvider.isBlocked = false;
         _showErrorDialog(e.toString());
       }
     }
   }
 
   void _showErrorDialog(String? text) async {
-    sendingProvider.isSending = false;
     await showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -187,6 +231,17 @@ class _SpeechScreenState extends State<SpeechScreen> {
                 ),
                 const VerticalSpace(15),
                 Text(text!, style: Theme.of(context).textTheme.bodyMedium),
+                text.contains("Permission denied")
+                    ? GestureDetector(
+                        child: Text(
+                          'Click here to open the settings',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                        onTap: () {
+                          openAppSettings();
+                        },
+                      )
+                    : Container()
               ],
             ),
           ),
@@ -229,16 +284,33 @@ class _SpeechScreenState extends State<SpeechScreen> {
         },
       );
 
+      _audioPlayer = AudioPlayer();
+
       await _audioPlayer.setFilePath(file.path);
       await _audioPlayer.load();
 
       _listenToAudio();
 
-      await _audioPlayer.play();
+      setState(
+        () {
+          _boolThinkingInput?.value = false;
+        },
+      );
+
+      await _audioPlayer.play().then(
+        (value) {
+          blockingProvider.isBlocked = false;
+        },
+      );
+
+      _audioPlayer.dispose();
     } catch (e) {
-      if (kDebugMode) {
-        print(e);
-      }
+      setState(
+        () {
+          _boolThinkingInput?.value = false;
+        },
+      );
+      _showErrorDialog(e.toString());
     }
   }
 
@@ -248,7 +320,7 @@ class _SpeechScreenState extends State<SpeechScreen> {
         double audioTime = event.inMilliseconds.toDouble();
         setState(
           () {
-            _numberExampleInput?.value = getVisemeId(audioTime).toDouble();
+            _numberVisemesInput?.value = getVisemeId(audioTime).toDouble();
           },
         );
       },
@@ -269,7 +341,10 @@ class _SpeechScreenState extends State<SpeechScreen> {
     final controller =
         rive.StateMachineController.fromArtboard(artboard, 'State');
     artboard.addController(controller!);
-    _numberExampleInput =
+    _numberVisemesInput =
         controller.findInput<double>('viseme') as rive.SMINumber;
+    _boolThinkingInput = controller.findInput<bool>('thinking') as rive.SMIBool;
+    _boolListeningInput =
+        controller.findInput<bool>('listening') as rive.SMIBool;
   }
 }

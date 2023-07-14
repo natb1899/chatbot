@@ -31,11 +31,10 @@ class Auth {
 
   Future<void> signOut(BuildContext context) async {
     await _auth.signOut().then(
-          (value) => Navigator.pushReplacement(
+          (value) => Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(
-              builder: (context) => const Tree(),
-            ),
+            MaterialPageRoute(builder: (context) => const Tree()),
+            (route) => false,
           ),
         );
   }

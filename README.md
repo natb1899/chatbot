@@ -16,4 +16,3 @@ This chatbot was created as part of a bachelor thesis.
 
 - [Kanban](https://docs.flutter.dev/get-started/codelab)
 - [User guide](https://docs.flutter.dev/get-started/codelab)
-- [technical guide](https://docs.flutter.dev/cookbook)
