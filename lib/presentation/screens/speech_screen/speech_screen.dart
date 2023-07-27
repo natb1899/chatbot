@@ -4,6 +4,7 @@ import 'package:chatbot/domain/entities/viseme_entity.dart';
 import 'package:chatbot/domain/usecases/get_speech.dart';
 import 'package:chatbot/presentation/provider/block_provider.dart';
 import 'package:chatbot/presentation/provider/chat_provider.dart';
+import 'package:chatbot/presentation/provider/language_provider.dart';
 import 'package:chatbot/presentation/provider/model_provider.dart';
 import 'package:chatbot/presentation/provider/recording_provider.dart';
 import 'package:chatbot/presentation/screens/speech_screen/widgets/record_control_widget.dart';
@@ -34,8 +35,10 @@ class _SpeechScreenState extends State<SpeechScreen> {
   late Record _audioRecorder;
   late AudioPlayer _audioPlayer;
   String? _transcript;
+  bool _isVolumeOn = true;
   late bool isMan;
   late String gptModel;
+  late String language;
 
   late PanelController _panelController;
   late RecordingProvider recordingProvider;
@@ -68,6 +71,7 @@ class _SpeechScreenState extends State<SpeechScreen> {
 
     isMan = Provider.of<GenderProvider>(context).isMan;
     gptModel = Provider.of<ModelProvider>(context).model;
+    language = Provider.of<LanguageProvider>(context).language;
 
     chatProvider = Provider.of<ChatProvider>(context);
     recordingProvider = Provider.of<RecordingProvider>(context);
@@ -108,17 +112,17 @@ class _SpeechScreenState extends State<SpeechScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              Padding(
-                padding: const EdgeInsets.only(bottom: 5),
-                child: SizedBox(
-                  width: 400.0,
-                  height: 400.0,
-                  child: rive.RiveAnimation.asset(
-                      'assets/animations/avatars.riv',
-                      artboard: isMan ? "Man" : "Woman",
-                      onInit: _onRiveInit,
-                      fit: BoxFit.fitHeight),
-                ),
+              SizedBox(
+                width: 400.0,
+                height: 400.0,
+                child: rive.RiveAnimation.asset('assets/animations/avatars.riv',
+                    artboard: isMan ? "Man" : "Woman",
+                    onInit: _onRiveInit,
+                    fit: BoxFit.fitHeight),
+              ),
+              const Text(
+                "Image by Freepik",
+                style: TextStyle(color: Colors.black, fontSize: 4),
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 15),
@@ -130,7 +134,11 @@ class _SpeechScreenState extends State<SpeechScreen> {
                     style: Theme.of(context).textTheme.displaySmall,
                   ),
                 ),
-              )
+              ),
+              IconButton(
+                onPressed: _toggleVolume,
+                icon: Icon(_isVolumeOn ? Icons.volume_up : Icons.volume_off),
+              ),
             ],
           ),
         ),
@@ -149,6 +157,19 @@ class _SpeechScreenState extends State<SpeechScreen> {
     }
   }
 
+  void _toggleVolume() {
+    if (_isVolumeOn) {
+      _audioPlayer.setVolume(0);
+    } else {
+      _audioPlayer.setVolume(1);
+    }
+    setState(
+      () {
+        _isVolumeOn = !_isVolumeOn;
+      },
+    );
+  }
+
   // Method to start recording audio
   Future<void> _start() async {
     try {
@@ -159,6 +180,7 @@ class _SpeechScreenState extends State<SpeechScreen> {
             _boolListeningInput?.value = recordingProvider.isRecording;
           },
         );
+
         // Start recording audio
         await _audioRecorder.start();
       } else {
@@ -166,6 +188,11 @@ class _SpeechScreenState extends State<SpeechScreen> {
         _showErrorDialog("Permission denied");
       }
     } catch (e) {
+      setState(
+        () {
+          _boolListeningInput?.value = false;
+        },
+      );
       if (kDebugMode) {
         print(e);
       }
@@ -260,7 +287,9 @@ class _SpeechScreenState extends State<SpeechScreen> {
     );
   }
 
+  // This method is responsible for playing an audio response given an answer.
   Future<void> _playAudio(answer) async {
+    // Create an instance of GetSpeech with the appropriate API repository.
     final GetSpeech getSpeech = GetSpeech(
       ApiRepositoryImpl(
         ApiRemoteDataSourceImpl(http.Client()),
@@ -268,58 +297,83 @@ class _SpeechScreenState extends State<SpeechScreen> {
     );
 
     try {
-      var transcription = await getSpeech.execute(answer, isMan);
+      // Request speech transcription using the GetSpeech service.
+      var transcription = await getSpeech.execute(answer, isMan, language);
 
       late File file;
 
+      // Process the response from GetSpeech.
       transcription.fold(
         (failure) {
+          // In case of failure, log the error if in debug mode.
           if (kDebugMode) {
             print('$failure');
           }
         },
         (speechEntity) {
+          // In case of success, set the file and viseme events from the speechEntity.
           file = speechEntity.file;
           visemeEvents = speechEntity.visemes;
         },
       );
 
+      // Create an instance of AudioPlayer to play the audio.
       _audioPlayer = AudioPlayer();
 
+      // Set the file path and load the audio file.
       await _audioPlayer.setFilePath(file.path);
       await _audioPlayer.load();
 
-      _listenToAudio();
+      _createVisemes();
 
+      // Update the UI to indicate that thinking is complete.
       setState(
         () {
           _boolThinkingInput?.value = false;
         },
       );
 
+      // Play the audio and handle the completion event to unblock the app.
       await _audioPlayer.play().then(
         (value) {
-          blockingProvider.isBlocked = false;
+          blockingProvider.isBlocked = false; // Unblock the app.
         },
       );
 
+      // Dispose of the audio player after playing.
       _audioPlayer.dispose();
     } catch (e) {
+      // In case of any exceptions, handle the error and unblock the app.
+      blockingProvider.isBlocked = false;
+      // Update the UI to indicate that listening is stopped.
+      setState(
+        () {
+          _boolListeningInput?.value = false;
+        },
+      );
+      // Update the UI to indicate that thinking is complete.
       setState(
         () {
           _boolThinkingInput?.value = false;
         },
       );
+      // Show an error dialog with the exception details.
       _showErrorDialog(e.toString());
     }
   }
 
-  void _listenToAudio() {
+  // This method is used to create visemes based on the audio playback time.
+  void _createVisemes() {
+    // Whenever the audio position changes, this callback will be triggered.
     _audioPlayer.positionStream.listen(
       (event) {
+        // Retrieve the audio time in milliseconds from the event.
         double audioTime = event.inMilliseconds.toDouble();
+        // Set the state to update the visual representation of the viseme.
         setState(
           () {
+            // Call the getVisemeId method to determine the appropriate visemeId
+            // based on the current audio time, and update the corresponding value.
             _numberVisemesInput?.value = getVisemeId(audioTime).toDouble();
           },
         );
@@ -327,23 +381,37 @@ class _SpeechScreenState extends State<SpeechScreen> {
     );
   }
 
+  // This method retrieves the visemeId corresponding to the given audioTime.
   int getVisemeId(double audioTime) {
     for (int i = visemeEvents.length - 1; i >= 0; i--) {
       final visemeEvent = visemeEvents[i];
+      // Check if the audio offset of the current visemeEvent is less than or equal to the given audioTime.
       if (visemeEvent.audioOffset <= audioTime) {
+        // If true, return the corresponding visemeId for the current audioTime.
         return visemeEvent.visemeId;
       }
     }
+    // If no appropriate visemeId is found for the given audioTime, return 0 as a default value.
     return 0;
   }
 
+  /// Callback function called when the Rive animation is initialized and the [artboard] is ready.
   void _onRiveInit(rive.Artboard artboard) {
+    // Create a StateMachineController using the 'State' state machine in the provided [artboard].
     final controller =
         rive.StateMachineController.fromArtboard(artboard, 'State');
+
+    // Add the created controller to the [artboard] so that it can control the animation.
     artboard.addController(controller!);
+
+    // Find and assign the 'viseme' input of type double from the controller to the [_numberVisemesInput] variable.
     _numberVisemesInput =
         controller.findInput<double>('viseme') as rive.SMINumber;
+
+    // Find and assign the 'thinking' input of type bool from the controller to the [_boolThinkingInput] variable.
     _boolThinkingInput = controller.findInput<bool>('thinking') as rive.SMIBool;
+
+    // Find and assign the 'listening' input of type bool from the controller to the [_boolListeningInput] variable.
     _boolListeningInput =
         controller.findInput<bool>('listening') as rive.SMIBool;
   }

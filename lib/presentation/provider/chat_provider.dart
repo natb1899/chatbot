@@ -1,3 +1,4 @@
+import 'package:chatbot/data/datasources/firebase/firestore.dart';
 import 'package:chatbot/domain/entities/chat_message_entity.dart';
 import 'package:chatbot/domain/usecases/get_answer.dart';
 import 'package:chatbot/domain/usecases/get_transcription.dart';
@@ -77,9 +78,12 @@ class ChatProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void addMessage(ChatMessage message) {
+  void addMessage(ChatMessage message) async {
     _messages.add(
       message,
+    );
+    setChatId(
+      await FirestoreService().saveChatMessages(chatID, messages),
     );
   }
 

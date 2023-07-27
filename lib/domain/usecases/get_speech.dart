@@ -9,8 +9,8 @@ class GetSpeech {
   GetSpeech(this.apiRepository);
 
   Future<Either<Failure, SpeechEntity>> execute(
-      String answer, bool isMan) async {
+      String answer, bool isMan, String language) async {
     String formattedAnswer = answer.replaceAll('\n', '');
-    return await apiRepository.getSpeech(formattedAnswer, isMan);
+    return await apiRepository.getSpeech(formattedAnswer, isMan, language);
   }
 }

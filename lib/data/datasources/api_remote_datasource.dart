@@ -15,7 +15,7 @@ import 'package:path_provider/path_provider.dart';
 abstract class ApiRemoteDataSource {
   Future<TranscriptionModel> getTranscription(String path);
   Future<AnswerModel> getAnswer(List<ChatMessage> messages, String model);
-  Future<SpeechModel> getSpeech(String answer, bool isMan);
+  Future<SpeechModel> getSpeech(String answer, bool isMan, String language);
 }
 
 class ApiRemoteDataSourceImpl implements ApiRemoteDataSource {
@@ -76,22 +76,30 @@ class ApiRemoteDataSourceImpl implements ApiRemoteDataSource {
     return file.exists();
   }
 
+  // This method is used to retrieve an answer from the server by sending a list of ChatMessage objects and a model name.
   @override
   Future<AnswerModel> getAnswer(
       List<ChatMessage> messages, String model) async {
+    // Create the URL for the API endpoint using the provided model name.
     final url = Uri.parse(Endpoints.apiURL("chatgpt"));
 
     try {
+      // set a timeout of 10 seconds for the response.
       final response = await _sendMessageList(url, messages, model)
           .timeout(const Duration(seconds: 10));
 
+      // If the server responds with a status code of 200 (OK),
+      // decode the response body (assuming it's in UTF-8) and convert it into an AnswerModel object.
       if (response.statusCode == 200) {
         final responseBody = utf8.decode(response.bodyBytes);
         return AnswerModel.fromJson(json.decode(responseBody));
       } else {
+        // If the server responds with an error status code,
+        // throw a ServerException to indicate a server-side issue.
         throw ServerException();
       }
     } catch (e) {
+      // If the server takes more than 10 seconds to respond, throw a TimeoutException.
       throw TimeoutException();
     }
   }
@@ -113,13 +121,14 @@ class ApiRemoteDataSourceImpl implements ApiRemoteDataSource {
   }
 
   @override
-  Future<SpeechModel> getSpeech(String answer, bool isMan) async {
-    final url = Uri.parse(Endpoints.apiURL("synthesize"));
+  Future<SpeechModel> getSpeech(
+      String answer, bool isMan, String language) async {
+    final url = Uri.parse(Endpoints.apiURL("azure"));
 
     final response = await httpClient.post(
       url,
       headers: {'Content-Type': 'application/json'},
-      body: '{"text": "$answer", "isMan": $isMan}',
+      body: '{"text": "$answer", "isMan": $isMan, "language": "$language"}',
     );
 
     if (response.statusCode == 200) {

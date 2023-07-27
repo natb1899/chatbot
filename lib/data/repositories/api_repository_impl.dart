@@ -41,9 +41,10 @@ class ApiRepositoryImpl implements ApiRepository {
 
   @override
   Future<Either<Failure, SpeechEntity>> getSpeech(
-      String answer, bool isMan) async {
+      String answer, bool isMan, String language) async {
     try {
-      final getSpeech = await apiRemoteDataSource.getSpeech(answer, isMan);
+      final getSpeech =
+          await apiRemoteDataSource.getSpeech(answer, isMan, language);
       return Right(getSpeech);
     } on ServerException {
       return Left(ServerFailure());

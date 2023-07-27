@@ -37,14 +37,14 @@ class FirestoreService {
       String chatID, List<ChatMessage> messages) async {
     DocumentReference documentReference;
     if (chatID == "") {
-      // Create a new document reference
+      // If the chatID is empty, create a new document reference
       documentReference = FirebaseFirestore.instance
           .collection('users')
           .doc(Auth().currentUser!.uid)
           .collection('chats')
           .doc();
     } else {
-      // Create a new document reference
+      // If the chatID is not empty, use the existing chatID to update the document reference
       documentReference = FirebaseFirestore.instance
           .collection('users')
           .doc(Auth().currentUser!.uid)

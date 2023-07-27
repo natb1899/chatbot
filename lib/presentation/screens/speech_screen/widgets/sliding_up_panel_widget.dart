@@ -29,7 +29,7 @@ class SlidingPanel extends StatelessWidget {
       children: <Widget>[
         const VerticalSpace(10),
         buildDragHandle(context),
-        const VerticalSpace(40),
+        const VerticalSpace(20),
         buildContent(context),
         const VerticalSpace(10),
         buildChat(context)
@@ -71,32 +71,6 @@ class SlidingPanel extends StatelessWidget {
                   ? Container()
                   : Row(
                       children: [
-                        Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(10),
-                            boxShadow: [
-                              BoxShadow(
-                                  color: Theme.of(context).colorScheme.primary,
-                                  spreadRadius: 0),
-                            ],
-                          ),
-                          height: 40,
-                          width: 40,
-                          child: IconButton(
-                            onPressed: () async {
-                              chatProvider.setChatId(
-                                await FirestoreService().saveChatMessages(
-                                    chatProvider.chatID, chatProvider.messages),
-                              );
-                            },
-                            icon: const Icon(
-                              Icons.save_outlined,
-                              color: Colors.white,
-                              size: 20,
-                            ),
-                          ),
-                        ),
-                        const HorizontalSpace(10),
                         Container(
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(10),

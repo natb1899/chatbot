@@ -49,14 +49,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.1.16"
-  avatar_glow:
-    dependency: "direct main"
-    description:
-      name: avatar_glow
-      sha256: "3627f6f97d1f10d3c1996ae108d3488eabaf68c0cf0c3eac7e7c746a3812881d"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.0.2"
   boolean_selector:
     dependency: transitive
     description:
@@ -233,14 +225,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.10.1"
-  dynamic_color:
-    dependency: "direct main"
-    description:
-      name: dynamic_color
-      sha256: "74dff1435a695887ca64899b8990004f8d1232b0e84bfc4faa1fdda7c6f57cc1"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.6.5"
   equatable:
     dependency: "direct main"
     description:
@@ -504,14 +488,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.4"
-  mockito:
-    dependency: "direct dev"
-    description:
-      name: mockito
-      sha256: "7d5b53bcd556c1bc7ffbe4e4d5a19c3e112b7e925e9e172dd7c6ad0630812616"
-      url: "https://pub.dev"
-    source: hosted
-    version: "5.4.2"
   nested:
     dependency: transitive
     description:
@@ -845,14 +821,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.0+1"
-  source_gen:
-    dependency: transitive
-    description:
-      name: source_gen
-      sha256: fc0da689e5302edb6177fdd964efcb7f58912f43c28c2047a808f5bfff643d16
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.4.0"
   source_span:
     dependency: transitive
     description:
@@ -958,21 +926,13 @@ packages:
     source: hosted
     version: "0.1.4-beta"
   web_socket_channel:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: web_socket_channel
       sha256: d88238e5eac9a42bb43ca4e721edba3c08c6354d4a53063afaa568516217621b
       url: "https://pub.dev"
     source: hosted
     version: "2.4.0"
-  web_socket_channel_connect:
-    dependency: "direct main"
-    description:
-      name: web_socket_channel_connect
-      sha256: "662e1f41a720ff2f86c651e03b22e63979e768abf70d7a12329053f02b3e4a17"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.2"
   win32:
     dependency: transitive
     description:
@@ -999,4 +959,4 @@ packages:
     version: "3.1.2"
 sdks:
   dart: ">=3.1.0-185.0.dev <4.0.0"
-  flutter: ">=3.4.0-17.0.pre"
+  flutter: ">=3.3.0"

@@ -1,3 +1,4 @@
+import 'package:chatbot/presentation/provider/language_provider.dart';
 import 'package:chatbot/presentation/provider/model_provider.dart';
 import 'package:chatbot/theme/app_bar_theme.dart';
 import 'package:chatbot/presentation/provider/gender_provider.dart';
@@ -14,20 +15,26 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   late GenderProvider _genderProvider;
   late ModelProvider _modelProvider;
+  late LanguageProvider _languageProvider;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     _genderProvider = Provider.of<GenderProvider>(context);
     _modelProvider = Provider.of<ModelProvider>(context);
+    _languageProvider = Provider.of<LanguageProvider>(context);
   }
 
   void _handleGenderChange(bool value) {
     _genderProvider.isMan = value;
   }
 
-  void _handleModelChange(String value) {
-    _modelProvider.setModel = value;
+  void _handleModelChange(String model) {
+    _modelProvider.setModel = model;
+  }
+
+  void _handleLanguageChange(String language) {
+    _languageProvider.setLanguage = language;
   }
 
   @override
@@ -48,9 +55,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             },
           ),
           ListTile(
-            title: const Text('Language'),
+            title: const Text('Gender'),
             subtitle: const Text(
-              'Select your gender',
+              'Select the gender of your avatar',
               style: TextStyle(color: Colors.grey),
             ),
             trailing: Row(
@@ -101,19 +108,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
               style: TextStyle(color: Colors.grey),
             ),
             trailing: DropdownButton<String>(
-              value: 'English',
-              onChanged: (value) {},
+              value: _languageProvider.language,
+              onChanged: (value) => _handleLanguageChange(value!),
               items: const [
                 DropdownMenuItem(
-                  value: 'English',
+                  value: 'english',
                   child: Text('English'),
                 ),
                 DropdownMenuItem(
-                  value: 'Spanish',
+                  value: 'german',
                   child: Text('German'),
                 ),
                 DropdownMenuItem(
-                  value: 'French',
+                  value: 'french',
                   child: Text('French'),
                 ),
               ],

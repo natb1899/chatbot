@@ -1,6 +1,7 @@
 import 'package:chatbot/presentation/provider/block_provider.dart';
 import 'package:chatbot/presentation/provider/chat_provider.dart';
 import 'package:chatbot/presentation/provider/gender_provider.dart';
+import 'package:chatbot/presentation/provider/language_provider.dart';
 import 'package:chatbot/presentation/provider/model_provider.dart';
 import 'package:chatbot/presentation/provider/recording_provider.dart';
 import 'package:flutter/material.dart';
@@ -18,6 +19,8 @@ class Injector extends StatelessWidget {
               create: (_) => GenderProvider(isMan: true)),
           ChangeNotifierProvider<ModelProvider>(
               create: (_) => ModelProvider(model: 'gpt-3.5-turbo')),
+          ChangeNotifierProvider<LanguageProvider>(
+              create: (_) => LanguageProvider(language: 'english')),
           ChangeNotifierProvider<BlockProvider>(create: (_) => BlockProvider()),
           ChangeNotifierProvider<RecordingProvider>(
               create: (_) => RecordingProvider()),

@@ -46,7 +46,15 @@ class _CustomDrawerState extends State<CustomDrawer> {
                         // While waiting for data to load
                         return const CircularProgressIndicator();
                       } else if (snapshot.hasError) {
-                        return Text('Error: ${snapshot.error}');
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 20),
+                          child: Text(
+                            'Error: ${snapshot.error}',
+                            style: TextStyle(
+                                color: Theme.of(context).colorScheme.error,
+                                fontSize: 12),
+                          ),
+                        );
                       } else {
                         List<String> dataList = snapshot.data ?? [];
                         return ListView.builder(

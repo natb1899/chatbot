@@ -73,7 +73,19 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Widget _errorMessage() {
-    return Text(errorMessage == "" ? "" : "Humm ? $errorMessage");
+    return errorMessage == ""
+        ? Container()
+        : Container(
+            padding: const EdgeInsets.all(5),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(5),
+              color: Theme.of(context).colorScheme.error,
+            ),
+            child: Text(
+              "$errorMessage",
+              style: const TextStyle(color: Colors.white, fontSize: 12),
+            ),
+          );
   }
 
   Widget _submitButton() {
@@ -123,7 +135,9 @@ class _LoginPageState extends State<LoginPage> {
             _entryField("email", _emailController),
             const VerticalSpace(20),
             _entryField("password", _passwordController),
+            const VerticalSpace(20),
             _errorMessage(),
+            const VerticalSpace(20),
             _submitButton(),
             const VerticalSpace(10),
             _loginOrRegisterButton(),

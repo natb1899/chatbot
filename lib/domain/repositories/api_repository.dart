@@ -9,5 +9,6 @@ abstract class ApiRepository {
   Future<Either<Failure, TranscriptionEntity>> getTranscription(String path);
   Future<Either<Failure, AnswerEntity>> getAnswer(
       List<ChatMessage> messages, String model);
-  Future<Either<Failure, SpeechEntity>> getSpeech(String answer, bool isMan);
+  Future<Either<Failure, SpeechEntity>> getSpeech(
+      String answer, bool isMan, String language);
 }
