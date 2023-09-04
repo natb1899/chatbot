@@ -10,7 +10,9 @@ class GetSpeech {
 
   Future<Either<Failure, SpeechEntity>> execute(
       String answer, bool isMan, String language) async {
-    String formattedAnswer = answer.replaceAll('\n', '');
-    return await apiRepository.getSpeech(formattedAnswer, isMan, language);
+    String replacedString = answer.replaceAll("'", '').replaceAll('"', '');
+    // Replace newline characters with a space or any other desired character.
+    replacedString = replacedString.replaceAll('\n', ' ');
+    return await apiRepository.getSpeech(replacedString, isMan, language);
   }
 }
